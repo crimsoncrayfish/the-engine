@@ -174,6 +174,11 @@ func compileShader(source string, shaderType uint32) (uint32, error) {
 }
 
 func newVector(points []float32, degrees float32) []float32 {
+	if math.Mod(float64(len(points)), 3) != 0 {
+		panic("Your points dont have a multiple of 3(X/Y/Z) coordinates")
+	}
+	//todo loop through points in stead of assuming a triangle
+
 	center := []float32{0, 0, 0}
 	point1 := points[0:2]
 	point2 := points[3:5]
