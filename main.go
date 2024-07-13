@@ -6,7 +6,6 @@ import (
 	"math"
 	"runtime"
 	"strings"
-	"time"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/go-gl/glfw/v3.2/glfw"
@@ -34,8 +33,17 @@ const (
 )
 
 var (
+	square = []float32{
+		-0.5, 0.5, 0,
+		-0.5, -0.5, 0,
+		0.5, -0.5, 0,
+
+		-0.5, 0.5, 0,
+		0.5, 0.5, 0,
+		0.5, -0.5, 0,
+	}
 	triangle = []float32{
-		0, 0.5, 0,
+		-0.5, 0.5, 0,
 		-0.5, -0.5, 0,
 		0.5, -0.5, 0,
 	}
@@ -49,23 +57,23 @@ func main() {
 
 	program := initOpenGl()
 
-	previousTime := time.Now().UnixMilli()
-	direction := float32(1)
+	//previousTime := time.Now().UnixMilli()
+	//direction := float32(1)
 
 	for !window.ShouldClose() {
-		newTime := time.Now().UnixMilli()
-		milliseconds := newTime - previousTime
-		degrees := direction * float32(milliseconds) / 1000.0 * 6.0 * speed
-		if math.Abs(float64(degrees)) >= 360 {
-			previousTime = newTime
-			direction = direction * -1
-		}
+		//newTime := time.Now().UnixMilli()
+		//milliseconds := newTime - previousTime
+		//degrees := direction * float32(milliseconds) / 1000.0 * 6.0 * speed
+		//if math.Abs(float64(degrees)) >= 360 {
+		//previousTime = newTime
+		//direction = direction * -1
+		//}
 
-		currentTriangle := newVector(triangle, float32(degrees))
+		//currentTriangle := newVector(triangle, float32(degrees))
+		//vao := makeVertexArrayObject(currentTriangle)
 
-		vao := makeVertexArrayObject(currentTriangle)
-
-		draw(vao, window, program)
+		vao := makeVertexArrayObject(square)
+		draw(square, vao, window, program)
 	}
 }
 
@@ -115,12 +123,12 @@ func initOpenGl() uint32 {
 	return prog
 }
 
-func draw(vao uint32, window *glfw.Window, program uint32) {
+func draw(shape []float32, vao uint32, window *glfw.Window, program uint32) {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	gl.UseProgram(program)
 
 	gl.BindVertexArray(vao)
-	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(triangle)/3))
+	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(shape)/3))
 
 	glfw.PollEvents()
 	window.SwapBuffers()
