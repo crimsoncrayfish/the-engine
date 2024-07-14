@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"math"
@@ -17,14 +16,14 @@ import (
 )
 
 const (
-	width  = 500
-	height = 500
-	rows   = 10
-	cols   = 10
+	default_width  = 500
+	default_height = 500
+	default_rows   = 10
+	default_cols   = 10
 
 	//starting position
-	seed      = 420
-	threshold = 0.15
+	default_seed = 420
+	threshold    = 0.15
 
 	vertexShaderSource = `
     #version 410
@@ -44,17 +43,32 @@ const (
 )
 
 func main() {
-	seedPtr := flag.Int("seed", seed, "an int")
-	widthPtr := flag.Int("width", width, "an int")
-	heightPtr := flag.Int("height", height, "an int")
-	rowsPtr := flag.Int("rows", rows, "an int")
-	colsPtr := flag.Int("cols", cols, "an int")
-	flag.Parse()
-	fmt.Printf("Starting Conways's game of life with seed %v\n", int64(*seedPtr))
+	var input_seed int
+	readInputInt(&input_seed, default_seed, "Please provide a seed number (default %v)")
+
+	var input_width int
+	readInputInt(&input_width, default_width, "Please provide a width (default %v)")
+
+	var input_height int
+	readInputInt(&input_height, default_height, "Please provide a heigh (default %v)")
+
+	var input_cols int
+	readInputInt(&input_cols, default_cols, "Please provide the number of columns (default %v)")
+
+	var input_rows int
+	readInputInt(&input_rows, default_rows, "Please provide the number of rows (default %v)")
+
+	fmt.Println("Starting Conways's game of life")
+	fmt.Printf("Seed: %v\n", input_seed)
+	fmt.Printf("Width: %v\n", input_width)
+	fmt.Printf("Height: %v\n", input_height)
+	fmt.Printf("Cols: %v\n", input_cols)
+	fmt.Printf("Rows: %v\n", input_rows)
+	fmt.Println("--------------------")
 
 	runtime.LockOSThread()
-
-	window := initGlfw(*widthPtr, *heightPtr)
+	fmt.Println("Initializing GLFW...")
+	window := initGlfw(input_width, input_height)
 	defer glfw.Terminate()
 
 	program := initOpenGl()
@@ -62,7 +76,8 @@ func main() {
 	previousTime := time.Now().UnixMilli()
 	//direction := float32(1)
 
-	cells := makeCells(*rowsPtr, *colsPtr, int64(*seedPtr))
+	fmt.Println("Seeding game...")
+	cells := makeCells(input_rows, input_cols, int64(input_seed))
 
 	//run through blocks over time
 	//	currentCol := 0
@@ -103,6 +118,14 @@ func main() {
 	}
 }
 
+func readInputInt(value *int, default_value int, prompt string) {
+	fmt.Printf(prompt, default_value)
+	_, err := fmt.Scanln(value)
+	if err != nil {
+		*value = default_value
+	}
+}
+
 func nextBlock(cells [][]*cell.Cell, currentCol, currentRow int) (int, int) {
 	newCol := currentCol + 1
 	newRow := currentRow
@@ -130,6 +153,7 @@ func initGlfw(width, height int) *glfw.Window {
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
 
+	fmt.Printf("Creating window %vx%v", width, height)
 	window, err := glfw.CreateWindow(width, height, "Conway's Game of Life", nil, nil)
 	if err != nil {
 		panic(err)
