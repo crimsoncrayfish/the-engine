@@ -1,11 +1,14 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"math"
+	"math/rand"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/go-gl/glfw/v3.2/glfw"
@@ -14,11 +17,16 @@ import (
 )
 
 const (
-	width              = 500
-	height             = 500
-	speed              = 5
-	rows               = 10
-	cols               = 10
+	width  = 500
+	height = 500
+	speed  = 5
+	rows   = 10
+	cols   = 10
+
+	//starting position
+	seed      = 420
+	threshold = 0.15
+
 	vertexShaderSource = `
     #version 410
     in vec3 vp;
@@ -37,6 +45,10 @@ const (
 )
 
 func main() {
+	seedPtr := flag.Int("seed", seed, "an int")
+	flag.Parse()
+	fmt.Printf("Starting Conways's game of life with seed %v\n", int64(*seedPtr))
+
 	runtime.LockOSThread()
 
 	window := initGlfw()
@@ -44,11 +56,10 @@ func main() {
 
 	program := initOpenGl()
 
-	//rotating shapes need time to rotate
-	//	previousTime := time.Now().UnixMilli()
+	previousTime := time.Now().UnixMilli()
 	//direction := float32(1)
 
-	cells := makeCells(rows, cols)
+	cells := makeCells(rows, cols, int64(*seedPtr))
 
 	//run through blocks over time
 	//	currentCol := 0
@@ -74,6 +85,17 @@ func main() {
 		//}
 		//drawACell(currentCol, currentRow, cells, window, program)
 
+		//conway's game of life
+		newTime := time.Now().UnixMilli()
+		millisecondsPassed := newTime - previousTime
+		if millisecondsPassed > 100 {
+			for x := range cells {
+				for _, c := range cells[x] {
+					c.CheckState(cells)
+				}
+			}
+			previousTime = newTime
+		}
 		draw(cells, window, program)
 	}
 }
@@ -204,11 +226,15 @@ func compileShader(source string, shaderType uint32) (uint32, error) {
 	return shader, nil
 }
 
-func makeCells(rows, cols int) [][]*cell.Cell {
+func makeCells(rows, cols int, seed int64) [][]*cell.Cell {
 	cells := make([][]*cell.Cell, rows, cols)
+	r := rand.New(rand.NewSource(seed))
 	for x := 0; x < rows; x++ {
 		for y := 0; y < cols; y++ {
 			c := cell.NewCell(x, y, rows, cols)
+
+			isAlive := r.Float64() < threshold
+			c.SetAlive(isAlive)
 
 			cells[x] = append(cells[x], c)
 		}

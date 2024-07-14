@@ -25,9 +25,15 @@ type Cell struct {
 	drawable uint32
 	x        int
 	y        int
+
+	alive     bool
+	aliveNext bool
 }
 
 func (c *Cell) Draw() {
+	if !c.alive {
+		return
+	}
 	gl.BindVertexArray(c.drawable)
 	//todo fix this dependency on square
 	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(square)/3))
@@ -66,11 +72,79 @@ func NewCell(x, y, totalX, totalY int) *Cell {
 	}
 }
 
+func (c *Cell) CheckState(cells [][]*Cell) {
+	c.alive = c.aliveNext
+
+	c.aliveNext = c.alive
+
+	liveCount := c.liveSiblings(cells)
+	if c.alive {
+		if liveCount == 2 || liveCount == 3 {
+			c.aliveNext = true
+		} else {
+			c.aliveNext = false
+		}
+	} else {
+		if liveCount == 3 {
+			c.aliveNext = true
+		}
+	}
+
+}
+
+func (c *Cell) liveSiblings(cells [][]*Cell) int {
+	var liveCount int
+	siblings := c.getSiblings(cells)
+	for i := range siblings {
+		if siblings[i].alive {
+			liveCount += 1
+		}
+	}
+
+	return liveCount
+}
+
+func (c *Cell) SetAlive(isAlive bool) {
+	c.alive = isAlive
+	c.aliveNext = isAlive
+}
+
+func (c *Cell) getSiblings(cells [][]*Cell) []*Cell {
+	var siblings []*Cell
+	for x := -1; x <= 1; x++ {
+		for y := -1; y <= 1; y++ {
+			if (x == 0) && (y == 0) {
+				//ignore self
+				continue
+			}
+
+			row := wrap(c.x+x, len(cells))
+			col := wrap(c.y+y, len(cells[row]))
+			siblings = append(siblings, cells[row][col])
+		}
+	}
+	return siblings
+}
+
+func wrap(current, max int) int {
+	if current >= max {
+		return 0
+	}
+	if current < 0 {
+		return max - 1
+	}
+	return current
+}
+
 func isY(index int) bool {
 	return (index % 3) == 1
 }
 func isX(index int) bool {
 	return (index % 3) == 0
+}
+
+func isZ(index int) bool {
+	return (index % 3) == 2
 }
 
 func makeVertexArrayObject(points []float32) uint32 {
