@@ -19,7 +19,6 @@ import (
 const (
 	width  = 500
 	height = 500
-	speed  = 5
 	rows   = 10
 	cols   = 10
 
@@ -46,12 +45,16 @@ const (
 
 func main() {
 	seedPtr := flag.Int("seed", seed, "an int")
+	widthPtr := flag.Int("width", width, "an int")
+	heightPtr := flag.Int("height", height, "an int")
+	rowsPtr := flag.Int("rows", rows, "an int")
+	colsPtr := flag.Int("cols", cols, "an int")
 	flag.Parse()
 	fmt.Printf("Starting Conways's game of life with seed %v\n", int64(*seedPtr))
 
 	runtime.LockOSThread()
 
-	window := initGlfw()
+	window := initGlfw(*widthPtr, *heightPtr)
 	defer glfw.Terminate()
 
 	program := initOpenGl()
@@ -59,7 +62,7 @@ func main() {
 	previousTime := time.Now().UnixMilli()
 	//direction := float32(1)
 
-	cells := makeCells(rows, cols, int64(*seedPtr))
+	cells := makeCells(*rowsPtr, *colsPtr, int64(*seedPtr))
 
 	//run through blocks over time
 	//	currentCol := 0
@@ -116,7 +119,7 @@ func nextBlock(cells [][]*cell.Cell, currentCol, currentRow int) (int, int) {
 
 }
 
-func initGlfw() *glfw.Window {
+func initGlfw(width, height int) *glfw.Window {
 	if err := glfw.Init(); err != nil {
 		panic(err)
 	}
@@ -227,11 +230,11 @@ func compileShader(source string, shaderType uint32) (uint32, error) {
 }
 
 func makeCells(rows, cols int, seed int64) [][]*cell.Cell {
-	cells := make([][]*cell.Cell, rows, cols)
+	cells := make([][]*cell.Cell, cols)
 	r := rand.New(rand.NewSource(seed))
-	for x := 0; x < rows; x++ {
-		for y := 0; y < cols; y++ {
-			c := cell.NewCell(x, y, rows, cols)
+	for x := 0; x < cols; x++ {
+		for y := 0; y < rows; y++ {
+			c := cell.NewCell(x, y, cols, rows)
 
 			isAlive := r.Float64() < threshold
 			c.SetAlive(isAlive)
