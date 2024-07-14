@@ -1,4 +1,4 @@
-# This is a dummy project built by a lazy dev
+# Game engine from scratch in GO
 
 Trying to build a game engine from scratch following a youtuber building in C++ only im doing it in Golang
 [Youtube series on building a game engine by The Cherno](https://www.youtube.com/watch?v=dDQ_PVoWMIA)
