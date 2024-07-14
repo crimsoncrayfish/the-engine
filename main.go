@@ -6,7 +6,6 @@ import (
 	"math"
 	"runtime"
 	"strings"
-	"time"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/go-gl/glfw/v3.2/glfw"
@@ -46,13 +45,14 @@ func main() {
 	program := initOpenGl()
 
 	//rotating shapes need time to rotate
-	previousTime := time.Now().UnixMilli()
+	//	previousTime := time.Now().UnixMilli()
 	//direction := float32(1)
 
 	cells := makeCells(rows, cols)
 
-	currentCol := 0
-	currentRow := 0
+	//run through blocks over time
+	//	currentCol := 0
+	//	currentRow := 0
 	for !window.ShouldClose() {
 		//rotating shapes need time to rotate
 		//newTime := time.Now().UnixMilli()
@@ -66,15 +66,15 @@ func main() {
 		//vao := makeVertexArrayObject(currentTriangle)
 
 		//run through blocks over time
-		newTime := time.Now().UnixMilli()
-		milliseconds := newTime - previousTime
-		if milliseconds > 100 {
-			currentCol, currentRow = nextBlock(cells, currentCol, currentRow)
-			previousTime = newTime
-		}
+		//newTime := time.Now().UnixMilli()
+		//milliseconds := newTime - previousTime
+		//if milliseconds > 100 {
+		//	currentCol, currentRow = nextBlock(cells, currentCol, currentRow)
+		//	previousTime = newTime
+		//}
+		//drawACell(currentCol, currentRow, cells, window, program)
 
-		drawACell(currentCol, currentRow, cells, window, program)
-		//draw(cells, window, program)
+		draw(cells, window, program)
 	}
 }
 
