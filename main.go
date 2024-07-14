@@ -3,13 +3,15 @@ package main
 import (
 	"fmt"
 	"log"
+	"math"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/go-gl/glfw/v3.2/glfw"
 
-	acell "the-engine/cell"
+	"the_engine/cell"
 )
 
 const (
@@ -43,12 +45,16 @@ func main() {
 
 	program := initOpenGl()
 
-	//previousTime := time.Now().UnixMilli()
+	//rotating shapes need time to rotate
+	previousTime := time.Now().UnixMilli()
 	//direction := float32(1)
 
 	cells := makeCells(rows, cols)
 
+	currentCol := 0
+	currentRow := 0
 	for !window.ShouldClose() {
+		//rotating shapes need time to rotate
 		//newTime := time.Now().UnixMilli()
 		//milliseconds := newTime - previousTime
 		//degrees := direction * float32(milliseconds) / 1000.0 * 6.0 * speed
@@ -56,12 +62,36 @@ func main() {
 		//previousTime = newTime
 		//direction = direction * -1
 		//}
-
 		//currentTriangle := newVector(triangle, float32(degrees))
 		//vao := makeVertexArrayObject(currentTriangle)
 
-		draw(cells, window, program)
+		//run through blocks over time
+		newTime := time.Now().UnixMilli()
+		milliseconds := newTime - previousTime
+		if milliseconds > 100 {
+			currentCol, currentRow = nextBlock(cells, currentCol, currentRow)
+			previousTime = newTime
+		}
+
+		drawACell(currentCol, currentRow, cells, window, program)
+		//draw(cells, window, program)
 	}
+}
+
+func nextBlock(cells [][]*cell.Cell, currentCol, currentRow int) (int, int) {
+	newCol := currentCol + 1
+	newRow := currentRow
+
+	if newCol > len(cells)-1 {
+		newCol = 0
+		newRow += 1
+		if newRow > len(cells[0])-1 {
+			newRow = 0
+		}
+	}
+
+	return newCol, newRow
+
 }
 
 func initGlfw() *glfw.Window {
@@ -110,15 +140,45 @@ func initOpenGl() uint32 {
 	return prog
 }
 
-func draw(cells [][]*acell.cell, window *glfw.Window, program uint32) {
+func draw(cells [][]*cell.Cell, window *glfw.Window, program uint32) {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	gl.UseProgram(program)
 
+	// for 1 shap do the following
 	//	gl.BindVertexArray(vao)
 	//	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(shape)/3))
-	//TODO
+
+	//for a checkerboard
+	//checkerBoard(cells)
+	for row := range cells {
+		for _, cell := range cells[row] {
+			cell.Draw()
+		}
+	}
+
 	glfw.PollEvents()
 	window.SwapBuffers()
+}
+
+func drawACell(col, row int, cells [][]*cell.Cell, window *glfw.Window, prog uint32) {
+	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+	gl.UseProgram(prog)
+
+	cells[col][row].Draw()
+	glfw.PollEvents()
+	window.SwapBuffers()
+}
+
+func checkerBoard(cells [][]*cell.Cell) {
+	for row := range cells {
+		for col, cell := range cells[row] {
+			rowMod := math.Mod(float64(row), 2)
+			colMod := math.Mod(float64(col), 2)
+			if math.Mod(rowMod+colMod, 2) == 0 {
+				cell.Draw()
+			}
+		}
+	}
 }
 
 func compileShader(source string, shaderType uint32) (uint32, error) {
@@ -144,11 +204,12 @@ func compileShader(source string, shaderType uint32) (uint32, error) {
 	return shader, nil
 }
 
-func makeCells(rows, cols int) [][]*acell.cell {
-	cells := make([][]*acell.cell, rows, cols)
+func makeCells(rows, cols int) [][]*cell.Cell {
+	cells := make([][]*cell.Cell, rows, cols)
 	for x := 0; x < rows; x++ {
 		for y := 0; y < cols; y++ {
-			c := acell.newCell(x, y, rows, cols)
+			c := cell.NewCell(x, y, rows, cols)
+
 			cells[x] = append(cells[x], c)
 		}
 	}

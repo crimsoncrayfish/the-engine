@@ -21,19 +21,19 @@ var (
 	}
 )
 
-type cell struct {
+type Cell struct {
 	drawable uint32
 	x        int
 	y        int
 }
 
-func (c *cell) draw() {
+func (c *Cell) Draw() {
 	gl.BindVertexArray(c.drawable)
 	//todo fix this dependency on square
 	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(square)/3))
 }
 
-func newCell(x, y, totalX, totalY int) *cell {
+func NewCell(x, y, totalX, totalY int) *Cell {
 	//todo is this a good idea -> len(square)? Hardcoded global variable
 	points := make([]float32, len(square), len(square))
 	copy(points, square)
@@ -59,7 +59,7 @@ func newCell(x, y, totalX, totalY int) *cell {
 		}
 	}
 
-	return &cell{
+	return &Cell{
 		drawable: makeVertexArrayObject(points),
 		x:        x,
 		y:        y,

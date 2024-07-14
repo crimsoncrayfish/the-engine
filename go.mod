@@ -1,4 +1,4 @@
-module the-engine
+module the_engine
 
 go 1.22.4
 
